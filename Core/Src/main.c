@@ -45,7 +45,11 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 uint8_t RxBuffer[2];
-uint8_t TxBuffer[40];
+uint8_t TxBuffer[400];
+uint8_t SpeedHz;
+uint8_t state = 0;
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -53,8 +57,10 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
+//void UARTPollingMethod();
 void UARTInterruptConfig();
 void HAL_UART_RxCpltCallback();
+void fxckinmode();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -92,7 +98,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  UARTInterruptConfig();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -238,7 +244,93 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		HAL_UART_Receive_IT(&huart2, RxBuffer, 1);
 	}
 }
+void fxckinmode(){
+	switch(state){
+		case 0:
 
+			sprintf((char*)TxBuffer, "................................... \n\r"
+									 "................................... \n\r"
+									 "......Select mode to control....... \n\r"
+									 "Press 0 : LED Mode \n\r"
+									 "Press 1 : Button Mode \n\r");
+//		printf ("................................... \n");
+//		printf ("................................... \n");
+//		printf ("......Select mode to control....... \n");
+//		printf ("Press 0 : LED Mode \n");
+//		printf ("Press 1 : Button Mode \n");
+		if(RxBuffer == '0'){
+			//led mode
+			state = 1;
+		}else if (RxBuffer == '1'){
+			//Button mode
+			state = 2;
+		}else{
+			state = 3;
+		}
+		break ;
+
+		//led mode
+		case 1:
+
+			sprintf((char*)TxBuffer, "................................... \n\r"
+									 "................................... \n\r"
+									 "..............LED Mode............. \n\r"
+									 "Press A : +Hz \n\r"
+									 "Press S : -Hz \n\r"
+									 "Press D : On/Off \n\r"
+									 "Press X : Back \n\r");
+
+//			printf ("................................... \n");
+//			printf ("................................... \n");
+//			printf ("..............LED Mode............. \n");
+//			printf ("Press A : +Hz \n");
+//			printf ("Press S : -Hz \n");
+//			printf ("Press D : On/Off \n");
+//			printf ("Press X : Back \n");
+
+		if(RxBuffer == 'A'){
+			SpeedHz = SpeedHz +1;
+		}else if(RxBuffer == 'S'){
+			SpeedHz = SpeedHz -1;
+		}else if(RxBuffer == 'D'){
+			//on/off
+		}else if(RxBuffer == 'X'){
+			state = 0;
+		}else {
+			state = 3;
+		}
+		break ;
+
+		//Button mode
+		case 2:
+
+			sprintf((char*)TxBuffer, "................................... \n\r"
+									 "................................... \n\r"
+									 "............Button Mode............ \n\r"
+									 "Button Status :  \n\r"
+									 "Press X : Back \n\r");
+
+		if(RxBuffer == 'X'){
+			state = 0;
+		}else{
+			state = 3;
+		}
+		break ;
+
+		//Wrong mode
+		case 3:
+
+			sprintf((char*)TxBuffer, "................................... \n\r"
+									 "................................... \n\r"
+									 "...............Warning............. \n\r"
+									 "Wring Button\n\r"
+									 "Press X : Back \n\r");
+		if(RxBuffer == 'X'){
+			state = 0;
+		}
+		break ;
+	}
+}
 /* USER CODE END 4 */
 
 /**
